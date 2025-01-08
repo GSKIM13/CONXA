@@ -24,13 +24,13 @@ Download Benchmark Dataset (BSDS-RIND.zip, testgt.zip) from [RINDNet](https://gi
 Move the files as shown below.
 
 
-**BSDS-RIND.zip**
-BSDS-RIND/Augmentation/Aug_JPEGIMages -> data/BSDS-RIND_ORI/aug_data
-BSDS-RIND/Augmentation/Aug_HDF5EdgeOriLabel -> data/BSDS-RIND_ORI/aug_gt
-BSDS-RIND/test -> data/BSDS-RIND_ORI/test
+**BSDS-RIND.zip**<br/>
+BSDS-RIND/Augmentation/Aug_JPEGIMages -> data/BSDS-RIND_ORI/aug_data<br/>
+BSDS-RIND/Augmentation/Aug_HDF5EdgeOriLabel -> data/BSDS-RIND_ORI/aug_gt<br/>
+BSDS-RIND/test -> data/BSDS-RIND_ORI/test<br/>
 
-**testgt.zip**
-testgt -> data/BSDS-RIND_ORI/testgt
+**testgt.zip**<br/>
+testgt -> data/BSDS-RIND_ORI/testgt<br/>
 ```
 |-- data
     |-- BSDS-RIND_ORI
