@@ -151,9 +151,9 @@ optimizer = dict(
     betas=(0.9, 0.999),
     paramwise_cfg=dict(custom_keys=dict(head=dict(lr_mult=10.0))))
 optimizer_config = dict()
-total_iters = 4000
-checkpoint_config = dict(by_epoch=False, interval=4000)
-evaluation = dict(interval=4000, metric='mIoU')
+total_iters = 3000
+checkpoint_config = dict(by_epoch=False, interval=3000)
+evaluation = dict(interval=3000, metric='mIoU')
 lr_config = dict(policy='fixed')
 find_unused_parameters = True
 work_dir = 'work_dirs/5000_500000'
