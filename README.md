@@ -101,11 +101,15 @@ currently not available
 You can download Pretrained Weight from [here](https://drive.google.com/drive/folders/1OR7zOD2zXK1Kbb35n4bx2OMX2TMIcx6S?usp=drive_link)
 
 ## Evaluation 
+**BSDS-RIND**<br/>
 You can download matlab file from [RINDNet](https://github.com/MengyangPu/RINDNet/tree/main)
 ```
 cd eval
 run eval.m
 ```
+
+**SBD, CITYSCAEPS Dataset**<br/>
+Follow Sequence provided by [SEAL](https://github.com/Chrisding/seal)
 
 ## Acknowledgments
 - Thanks to previous open-sourced github repo:<br/>
