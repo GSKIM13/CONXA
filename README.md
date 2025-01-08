@@ -50,15 +50,36 @@ testgt -> data/BSDS-RIND_ORI/testgt<br/>
 ```
 
 ## Training 
-We assume that you'are in CONXA Folder.
+We assume that you'are in CONXA Folder.<br/>
+**For BSDS-RIND Dataset**<br/>
 ```
 bash ./tools/dist_train.sh configs/bsds-rind/ConvNeXt_V2_case8_bn.py 1 --work-dir work_dirs/{result_name}
 ```
+**For SBD Dataset**<br/>
+```
+currently not available
+```
+
+**For CITYSCAEPS Dataset**<br/>
+```
+currently not available
+```
 
 ## Test 
-We assume that you'are in CONXA Folder.
+We assume that you'are in CONXA Folder.<br/>
+**For BSDS-RIND Dataset**<br/>
 ```
 test.py --checkpoint pretrained/iter_3000.pth --configs configs/bsds-rind/ConvNeXt_V2_case8_bn.py --tmpdir result
+```
+
+**For SBD Dataset**<br/>
+```
+currently not available
+```
+
+**For CITYSCAEPS Dataset**<br/>
+```
+currently not available
 ```
 
 ## Pretrained Weight
