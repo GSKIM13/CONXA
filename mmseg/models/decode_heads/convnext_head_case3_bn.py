@@ -9,7 +9,6 @@ from .layers import DropPath, to_2tuple, trunc_normal_
 
 from ..builder import HEADS
 from .decode_head import BaseDecodeHead
-from ..backbones.vit import Block
 
 from mmcv.cnn import build_norm_layer
 
