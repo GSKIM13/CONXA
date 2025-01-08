@@ -1,0 +1,96 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from functools import partial
+import math
+
+from .helpers import load_pretrained
+from .layers import DropPath, to_2tuple, trunc_normal_
+
+from ..builder import HEADS
+from .decode_head import BaseDecodeHead
+from ..backbones.vit import Block
+
+from mmcv.cnn import build_norm_layer
+
+
+class BIMLAHead(nn.Module):
+    def __init__(self, mla_channels=256, mlahead_channels=64, norm_cfg=None):
+        super(BIMLAHead, self).__init__()
+        self.head2_1 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                     nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head3_1 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                     nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head4_1 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                     nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head5_1 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                     nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4, bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head2 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                   nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head3 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                   nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head4 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                   nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+        self.head5 = nn.Sequential(nn.ConvTranspose2d(mla_channels, mlahead_channels, 4, stride=2, padding=1,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True),
+                                   nn.ConvTranspose2d(mlahead_channels, mlahead_channels, 16, stride=8, padding=4,bias=False), build_norm_layer(norm_cfg, mlahead_channels)[1], nn.ReLU(inplace=True))
+
+    def forward(self, mla_b2, mla_b3, mla_b4, mla_b5, mla_p2, mla_p3, mla_p4, mla_p5):
+        head2 = self.head2(mla_p2)
+        head3 = self.head3(mla_p3)
+        head4 = self.head4(mla_p4)
+        head5 = self.head5(mla_p5)
+
+        head2_1 = self.head2_1(mla_b2)
+        head3_1 = self.head3_1(mla_b3)
+        head4_1 = self.head4_1(mla_b4)
+        head5_1 = self.head5_1(mla_b5)
+
+        return torch.cat([head2, head3, head4, head5, head2_1, head3_1, head4_1, head5_1], dim=1)
+
+
+
+@HEADS.register_module()
+class VIT_BIMLAHead_CASE1(BaseDecodeHead):
+    """ Vision Transformer with support for patch or hybrid CNN input stage
+    """
+    def __init__(self, img_size=768, mla_channels=256, mlahead_channels=128, 
+                norm_layer=nn.BatchNorm2d, norm_cfg=None, **kwargs):
+        super(VIT_BIMLAHead_CASE1, self).__init__(**kwargs)
+        self.img_size = img_size
+        self.norm_cfg = norm_cfg
+        self.mla_channels = mla_channels
+        self.BatchNorm = norm_layer
+        self.mlahead_channels = mlahead_channels
+
+        ### multiple classes
+        
+        self.num_class = 4
+        self.mlahead_channels_mul = self.mlahead_channels*self.num_class
+
+
+
+        self.mlahead = BIMLAHead(mla_channels=self.mla_channels, mlahead_channels=self.mlahead_channels, norm_cfg=self.norm_cfg)
+        ### change the output channels!
+        self.global_features = nn.Sequential(
+            nn.Conv2d(8 * self.mlahead_channels, self.mlahead_channels_mul, 3, padding=1),
+            build_norm_layer(self.norm_cfg, self.mlahead_channels_mul)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.mlahead_channels_mul, self.mlahead_channels_mul, 3, padding=1),
+            build_norm_layer(self.norm_cfg, self.mlahead_channels_mul)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.mlahead_channels_mul, self.mlahead_channels_mul, 3, padding=1),
+            build_norm_layer(self.norm_cfg, self.mlahead_channels_mul)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.mlahead_channels_mul, self.mlahead_channels_mul, 1),
+            build_norm_layer(self.norm_cfg, self.mlahead_channels_mul)[1], nn.ReLU(inplace=True))
+        self.edge = nn.Conv2d(self.mlahead_channels_mul, self.num_class, 1)
+        
+
+
+    def forward(self, inputs):
+        x = self.mlahead(inputs[0], inputs[1], inputs[2], inputs[3], inputs[4], inputs[5], inputs[6], inputs[7])
+        #print(x.size())
+        x = self.global_features(x)
+        edge = self.edge(x)
+        #print(edge.size())
+        edge = torch.sigmoid(edge)
+        #print(edge.size())
+        #exit()
+        return edge, x
