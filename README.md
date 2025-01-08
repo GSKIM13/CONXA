@@ -21,12 +21,15 @@ pip install -r requirements/optional.txt
 
 Download Benchmark Dataset (BSDS-RIND.zip, testgt.zip) from [RINDNet](https://github.com/MengyangPu/RINDNet)
 
-Move the files below sequence
+Move the files as shown below.
 
+
+**BSDS-RIND.zip**
 BSDS-RIND/Augmentation/Aug_JPEGIMages -> data/BSDS-RIND_ORI/aug_data
 BSDS-RIND/Augmentation/Aug_HDF5EdgeOriLabel -> data/BSDS-RIND_ORI/aug_gt
 BSDS-RIND/test -> data/BSDS-RIND_ORI/test
 
+**testgt.zip**
 testgt -> data/BSDS-RIND_ORI/testgt
 ```
 |-- data
