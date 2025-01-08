@@ -116,4 +116,6 @@ Follow Sequence provided by [SEAL](https://github.com/Chrisding/seal)
   [RINDNet](https://github.com/MengyangPu/RINDNet/tree/main)<br/>
   [EDTER](https://github.com/MengyangPu/EDTER)<br/>
   [DFF](https://github.com/Lavender105/DFF)<br/>
-  [SEAL](https://github.com/Chrisding/seal)
+  [SEAL](https://github.com/Chrisding/seal)<br/>
+  [ConvNeXt-V2](https://github.com/facebookresearch/ConvNeXt-V2/tree/main)<br/>
+  [ConvNeXt](https://github.com/facebookresearch/ConvNeXt)<br/>
