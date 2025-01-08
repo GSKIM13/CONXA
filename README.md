@@ -17,7 +17,9 @@ pip install -e .  # or "python setup.py develop"
 pip install -r requirements/optional.txt
 ```
 
-## Dataset Preparation (BSDS-RIND)
+## Dataset Preparation 
+
+**BSDS-RIND**
 
 Download Benchmark Dataset (BSDS-RIND.zip, testgt.zip) from [RINDNet](https://github.com/MengyangPu/RINDNet)
 
@@ -48,7 +50,20 @@ testgt -> data/BSDS-RIND_ORI/testgt<br/>
         |   |-- reflectnace
         ......
 ```
+**SBD,CITYSCAPES**<br/>
+Follow Sequence provided by [SEAL](https://github.com/Chrisding/seal)
 
+```
+|-- data
+    |-- sbd-preprocess
+        |-- data_proc
+        |-- gt_eval
+    |-- cityscapes-preprocess
+        |-- data_proc
+        |-- gt_eval
+
+```
+    
 ## Training 
 We assume that you'are in CONXA Folder.<br/>
 **For BSDS-RIND Dataset**<br/>
