@@ -49,7 +49,7 @@ testgt -> data/BSDS-RIND_ORI/testgt
 ## Training 
 We assume that you'are in CONXA Folder.
 ```
-bash ./tools/dist_train.sh configs/bsds-rind/ConvNeXt_V2_case8_bn.py
+bash ./tools/dist_train.sh configs/bsds-rind/ConvNeXt_V2_case8_bn.py 1 --work-dir work_dirs/{result_name}
 ```
 
 ## Test 
@@ -59,7 +59,7 @@ test.py --checkpoint pretrained/iter_3000.pth --configs configs/bsds-rind/ConvNe
 ```
 
 ## Pretrained Weight
-You can download Pretrained Weight from [here]()
+You can download Pretrained Weight from [here](https://drive.google.com/drive/folders/1OR7zOD2zXK1Kbb35n4bx2OMX2TMIcx6S?usp=drive_link)
 
 ## Evaluation 
 You can download matlab file from [RINDNet](https://github.com/MengyangPu/RINDNet/tree/main)
@@ -70,7 +70,7 @@ run eval.m
 
 ## Acknowledgments
 - Thanks to previous open-sourced github repo:<br/>
-  [RINDNet](https://github.com/MengyangPu/RINDNet/tree/main)
-  [EDTER](https://github.com/MengyangPu/EDTER)
-  [DFF](https://github.com/Lavender105/DFF)
+  [RINDNet](https://github.com/MengyangPu/RINDNet/tree/main)<br/>
+  [EDTER](https://github.com/MengyangPu/EDTER)<br/>
+  [DFF](https://github.com/Lavender105/DFF)<br/>
   [SEAL](https://github.com/Chrisding/seal)
