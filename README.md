@@ -54,9 +54,9 @@ bash ./tools/dist_train.sh configs/bsds-rind/ConvNeXt_V2_case8_bn.py
 
 ## Test 
 We assume that you'are in CONXA Folder.
-'''
+```
 test.py --checkpoint pretrained/iter_3000.pth --configs configs/bsds-rind/ConvNeXt_V2_case8_bn.py --tmpdir result
-'''
+```
 
 
 
