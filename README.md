@@ -102,7 +102,7 @@ test.py --checkpoint pretrained/iter_80000.pth --configs configs/sbd/ConvNeXt_V2
 ```
 
 ## Pretrained Weight
-You can download Pretrained Weight from [here](https://drive.google.com/file/d/15fxLFf9bl8t_D7o-jqMlIMBz6fR8AHg9/view?usp=drive_link)
+You can download Pretrained Weight from [here](https://drive.google.com/drive/folders/1OR7zOD2zXK1Kbb35n4bx2OMX2TMIcx6S?usp=drive_link)
 
 ## Evaluation 
 **BSDS-RIND**<br/>
