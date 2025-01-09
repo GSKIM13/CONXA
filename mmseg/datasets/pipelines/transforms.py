@@ -6,6 +6,125 @@ import torch
 
 from ..builder import PIPELINES
 
+import cv2
+
+@PIPELINES.register_module()
+class PadToMinimumSizeWithSeg(object):
+    """Pad the image & mask to ensure the size is at least min_size.
+
+    Args:
+        min_size (tuple): Minimum size of the padded image.
+        pad_val (float, optional): Padding value for images. Default: 0.
+        seg_pad_val (float, optional): Padding value for segmentation maps. Default: 255.
+    """
+
+    def __init__(self, min_size=(320, 320), pad_val=0, seg_pad_val=255):
+        self.min_size = min_size
+        self.pad_val = pad_val
+        self.seg_pad_val = seg_pad_val
+
+    def _pad_img(self, results):
+        """Pad images to ensure the size is at least min_size."""
+        img = results['img']
+        h, w = img.shape[:2]
+        
+        print(f'img h,w : {h,w}')
+
+        if h >= self.min_size[0] and w >= self.min_size[1]:
+            results['img'] = img
+            results['pad_shape'] = img.shape
+            print('img pass')
+        else:
+            pad_h = max(self.min_size[0] - h, 0)
+            pad_w = max(self.min_size[1] - w, 0)
+            print(f'pad_size : {padded_img.shape}')
+            top, bottom = pad_h // 2, pad_h - pad_h // 2
+            left, right = pad_w // 2, pad_w - pad_w // 2
+            padded_img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.pad_val)
+            results['img'] = padded_img
+            results['pad_shape'] = padded_img.shape
+
+    def _pad_seg(self, results):
+        """Pad masks to ensure the size matches the padded image size."""
+        for key in results.get('seg_fields', []):
+            mask = results[key]
+            h, w = mask.shape[:2]
+            
+            print(f'mask h,w : {h,w}')
+
+            if h >= self.min_size[0] and w >= self.min_size[1]:
+                results[key] = mask
+                print('mask pass')
+            else:
+                pad_h = max(self.min_size[0] - h, 0)
+                pad_w = max(self.min_size[1] - w, 0)
+                print(f'mask_size : {pad_h, pad_w}')
+                top, bottom = pad_h // 2, pad_h - pad_h // 2
+                left, right = pad_w // 2, pad_w - pad_w // 2
+                padded_mask = cv2.copyMakeBorder(mask, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.seg_pad_val)
+                results[key] = padded_mask
+
+    def __call__(self, results):
+        """Call function to pad images and segmentation masks."""
+        self._pad_img(results)
+        if 'seg_fields' in results:
+            self._pad_seg(results)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(min_size={self.min_size}, pad_val={self.pad_val}, seg_pad_val={self.seg_pad_val})'
+        return repr_str
+
+
+@PIPELINES.register_module()
+class PadToMinimumSize(object):
+    """Pad the image to ensure the size is at least min_size.
+
+    Args:
+        min_size (tuple): Minimum size of the padded image.
+        pad_val (float, optional): Padding value for images. Default: 0.
+    """
+
+    def __init__(self, min_size=(320, 320), pad_val=0):
+        self.min_size = min_size
+        self.pad_val = pad_val
+
+    def _pad_img(self, results):
+        """Pad images to ensure the size is at least min_size."""
+        img = results['img']
+        h, w = img.shape[:2]
+        
+        print(f'h,w : {h,w}')
+
+        if h >= self.min_size[0] and w >= self.min_size[1]:
+            results['img'] = img
+            results['pad_shape'] = img.shape
+            print('pass')
+        else:
+            pad_h = max(self.min_size[0] - h, 0)
+            pad_w = max(self.min_size[1] - w, 0)
+            
+            print(f'pad_size : {padded_img.shape}')
+            top, bottom = pad_h // 2, pad_h - pad_h // 2
+            left, right = pad_w // 2, pad_w - pad_w // 2
+            padded_img = cv2.copyMakeBorder(img, top, bottom, left, right, cv2.BORDER_CONSTANT, value=self.pad_val)
+            results['img'] = padded_img
+            results['pad_shape'] = padded_img.shape
+            
+        
+        
+
+    def __call__(self, results):
+        """Call function to pad images."""
+        self._pad_img(results)
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(min_size={self.min_size}, pad_val={self.pad_val})'
+        return repr_str
+
 
 @PIPELINES.register_module()
 class Resize(object):
