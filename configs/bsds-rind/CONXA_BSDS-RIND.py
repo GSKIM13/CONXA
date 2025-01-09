@@ -3,41 +3,49 @@ norm_cfg = dict(type='SyncBN', requires_grad=True)
 model = dict(
     type='EncoderDecoder',
     backbone=dict(
-        type='ConvNeXt_V2_CASE2_SBD',
+        type='CONXA_Backbone',
         mla_channels=256,
         model_name='convnext_v2_large_224',
         mla_index=(0, 1, 2, 3),
-        norm_cfg=dict(type='LN', requires_grad=True),
+        norm_cfg=norm_cfg,  
         drop_rate=0.0,
-        category_emb_dim=1280,
-        embed_dim = 192,
-        scale=1280),
+        category_emb_dim=512, 
+        embed_dim=192,
+        scale = 128 
+    ), 
     decode_head=dict(
-        type='ConvNeXt_Head_CASE3_SBD',
-        in_channels=1024,
-        channels=512,
+        type='CONXA_Head',
+        in_channels=1024, 
+        channels=512, 
         img_size=320,
-        middle_channels=32,
-        head_channels=16,
-        num_classes=20,
-        norm_cfg=dict(type='SyncBN', requires_grad=True),
+        middle_channels=64, 
+        head_channels=32,
+        num_classes=4,
+        norm_cfg=norm_cfg,   
         align_corners=False,
-        loss_decode=dict(type='ConvNeXtLoss', use_sigmoid=True, attention_coeff=1.0, beta = 8, gamma =0.5, dice_coeff = 0, rev_dice_coeff = 10000000),
-        category_emb_dim=1280),
-   
-        
-          
+        loss_decode=dict(
+            type='CONXALoss',
+            use_sigmoid=True,
+            attention_coeff=1,
+            beta=8,  
+            gamma=0.5,
+            dice_coeff=0,
+            inv_dice_coeff=500000,    
+            iou_coeff=0
+        ),
+        category_emb_dim=512
+    )
 )
 train_cfg = dict()
 test_cfg = dict(mode='slide', crop_size=(320, 320), stride=(280, 280))
-dataset_type = 'PascalVOCDataset'
-data_root = ''
+dataset_type = 'BSDS_RINDDataset'
+data_root = 'data/BSDS-RIND_ORI'
 img_norm_cfg = dict(
     mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225], to_rgb=True)
 crop_size = (320, 320)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='LoadAnnotations_SBD'),
+    dict(type='LoadAnnotations'),
     dict(type='RandomCropTrain', crop_size=(320, 320), cat_max_ratio=0.75),
     dict(type='PadBSDS', size=(320, 320), pad_val=0, seg_pad_val=255),
     dict(
@@ -63,23 +71,22 @@ test_pipeline = [
         ])
 ]
 data = dict(
-    samples_per_gpu=10,
-    workers_per_gpu=10,
+    samples_per_gpu=4,
+    workers_per_gpu=4,
     train=dict(
-        type='PascalVOCDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/DFF_a100/data/sbd-preprocess/data_proc/',
+        type='BSDS_RINDDataset',
+        data_root='data/BSDS-RIND_ORI',
         img_dir='',
         ann_dir='',
-        split='trainvalaug_cls_orig_.txt',
+        split='ImageSets/train_pair.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='LoadAnnotations_SBD'),
-            dict(type='PadToMinimumSizeWithSeg'),
+            dict(type='LoadAnnotations'),
             dict(
                 type='RandomCropTrain',
                 crop_size=(320, 320),
                 cat_max_ratio=0.75),
-            # dict(type='PadBSDS', size=(320, 320), pad_val=0, seg_pad_val=255),
+            dict(type='PadBSDS', size=(320, 320), pad_val=0, seg_pad_val=255),
             dict(
                 type='NormalizeBSDS',
                 mean=[0.485, 0.456, 0.406],
@@ -88,11 +95,11 @@ data = dict(
             dict(type='Collect', keys=['img', 'gt_semantic_seg'])
         ]),
     val=dict(
-        type='PascalVOCDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/DFF_a100/data/sbd-preprocess/data_proc/',
+        type='BSDS_RINDDataset',
+        data_root='data/BSDS-RIND_ORI',
         img_dir='',
         ann_dir='',
-        split='test_cls_orig_.txt',
+        split='ImageSets/test_depth.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
@@ -109,11 +116,11 @@ data = dict(
                 ])
         ]),
     test=dict(
-        type='PascalVOCDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/DFF_a100/data/sbd-preprocess/data_proc/',
+        type='BSDS_RINDDataset',
+        data_root='data/BSDS-RIND_ORI',
         img_dir='',
         ann_dir='',
-        split='test_cls_orig_.txt',
+        split='ImageSets/test_depth.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
@@ -139,19 +146,15 @@ workflow = [('train', 1)]
 cudnn_benchmark = True
 optimizer = dict(
     type='AdamW',
-    lr=5e-5,
-    weight_decay=5e-5,
+    lr=5e-05,
+    weight_decay=5e-05,
     betas=(0.9, 0.999),
     paramwise_cfg=dict(custom_keys=dict(head=dict(lr_mult=10.0))))
-    
 optimizer_config = dict()
-total_iters = 25000
-checkpoint_config = dict(by_epoch=False, interval=25000)
-evaluation = dict(interval=25000, metric='mIoU')
-
+total_iters = 3000
+checkpoint_config = dict(by_epoch=False, interval=3000)
+evaluation = dict(interval=3000, metric='mIoU')
 lr_config = dict(policy='fixed')
 find_unused_parameters = True
-work_dir = 'work_dirs_case14_256'
+work_dir = 'work_dirs/5000_500000'
 gpu_ids = range(0, 1)
-
-

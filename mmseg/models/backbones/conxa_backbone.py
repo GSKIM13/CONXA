@@ -3,6 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from functools import partial
 import math
+import pandas as pd 
+import os
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from functools import partial
+import math
+import pandas as pd 
+import os
 
 from .helpers import load_pretrained_convnext
 from .layers import DropPath, to_2tuple, trunc_normal_
@@ -11,6 +21,14 @@ from ..builder import BACKBONES
 
 from mmcv.cnn import build_norm_layer
 from mmcv.runner import auto_fp16
+
+def get_unique_filename(base_path, base_name, extension):
+    counter = 1
+    file_path = f"{base_path}/{base_name}.{extension}"
+    while os.path.exists(file_path):
+        file_path = f"{base_path}/{base_name}_{counter}.{extension}"
+        counter += 1
+    return file_path
 
 def _cfg(url='', **kwargs):
     return {
@@ -131,6 +149,8 @@ import numpy.random as random
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+import torch.nn.init as init
 #from MinkowskiEngine import SparseTensor
 
 class MinkowskiGRN(nn.Module):
@@ -235,10 +255,10 @@ class GRN(nn.Module):
         Nx = Gx / (Gx.mean(dim=-1, keepdim=True) + 1e-6)
         return self.gamma * (x * Nx) + self.beta + x
         
-import torch.nn.init as init               
+               
         
 @BACKBONES.register_module()
-class ConvNeXt_V2_CASE2_CITY(nn.Module):
+class CONXA_Backbone(nn.Module):
     r""" ConvNeXt
         A PyTorch impl of : `A ConvNet for the 2020s`  -
           https://arxiv.org/pdf/2201.03545.pdf
@@ -254,8 +274,8 @@ class ConvNeXt_V2_CASE2_CITY(nn.Module):
     """
     def __init__(self, in_chans=3, model_name = 'convnext_large_224', num_classes=1000, mla_channels=256, mla_index = (0,1,2,3),
                  depths=[3, 3, 27, 3], dims=[192, 384, 768,1536], drop_path_rate=0., drop_rate=0., embed_dim = 32,
-                 layer_scale_init_value=1e-6, head_init_scale=1., norm_cfg = None, norm_layer=partial(nn.LayerNorm, eps=1e-6), category_emb_dim = 128
-                 ):
+                 layer_scale_init_value=1e-6, head_init_scale=1., norm_cfg = None, norm_layer=partial(nn.LayerNorm, eps=1e-6), category_emb_dim = 128,
+                 scale = 128):
         super().__init__()
         
         self.model_name = model_name
@@ -271,6 +291,8 @@ class ConvNeXt_V2_CASE2_CITY(nn.Module):
         self.norm_layer = norm_layer
         
         self.category_emb_dim = category_emb_dim
+        
+        self.scale = scale
 
         self.depths = depths
         self.downsample_layers = nn.ModuleList() # stem and 3 intermediate downsampling conv layers
@@ -297,37 +319,40 @@ class ConvNeXt_V2_CASE2_CITY(nn.Module):
             cur += depths[i]
 
         self.norm = nn.LayerNorm(dims[-1], eps=1e-6) # final norm layer
-
-
+        
         self.apply(self._init_weights)
+        
 
-               
-        self.deconv_1 = nn.ConvTranspose2d(dims[1], self.embed_dim, kernel_size=2, stride =2)
-        self.deconv_2 = nn.ConvTranspose2d(dims[2], self.embed_dim, kernel_size=4, stride =4)
-        self.deconv_3 = nn.ConvTranspose2d(dims[3], self.embed_dim, kernel_size=8, stride =8)
+
+         
+        self.deconv_1 = nn.Sequential(nn.ConvTranspose2d(dims[1], self.embed_dim, kernel_size=2, stride =2), nn.BatchNorm2d(self.embed_dim), nn.ReLU(inplace=True), nn.Conv2d(self.embed_dim, self.embed_dim, kernel_size=3, padding =1), nn.BatchNorm2d(self.embed_dim), nn.ReLU(inplace=True))
+        self.deconv_2 = nn.Sequential(nn.ConvTranspose2d(dims[2], self.embed_dim, kernel_size=4, stride =4), nn.BatchNorm2d(self.embed_dim), nn.ReLU(inplace=True), nn.Conv2d(self.embed_dim, self.embed_dim, kernel_size=3, padding =1), nn.BatchNorm2d(self.embed_dim), nn.ReLU(inplace=True))
+        self.deconv_3 = nn.Sequential(nn.ConvTranspose2d(dims[3], self.embed_dim, kernel_size=8, stride =8), nn.BatchNorm2d(self.embed_dim), nn.ReLU(inplace=True), nn.Conv2d(self.embed_dim, self.embed_dim, kernel_size=3, padding =1), nn.BatchNorm2d(self.embed_dim), nn.ReLU(inplace=True))
         
         self.query_li = nn.Linear(self.category_emb_dim, self.category_emb_dim) ## from feature
         self.key_li = nn.Linear(self.attention_dim, self.attention_dim) ## from embedding
         self.value_li = nn.Linear(self.attention_dim, self.attention_dim) ## from embedding
         self.softmax = nn.Softmax(dim=-1)
         
-        self.category_embedding = nn.Parameter(torch.empty(80*80, self.category_emb_dim), requires_grad=True)
         
+        self.category_embedding = nn.Parameter(torch.empty(6400, self.category_emb_dim), requires_grad=True)
+        
+        self.init_weights_category()
+        
+        #self.query_norm = LayerNorm(self.category_emb_dim, eps=1e-6, data_format="channels_last")
+        #self.key_norm = LayerNorm(self.attention_dim, eps=1e-6, data_format="channels_last")
+        #self.value_norm = LayerNorm(self.attention_dim, eps=1e-6, data_format="channels_last")
         
         self.query_norm = nn.LayerNorm(self.category_emb_dim)
         self.key_norm = nn.LayerNorm(self.attention_dim)
         self.value_norm = nn.LayerNorm(self.attention_dim)
         
-        self.init_weights_category()
-        
-        self.norm_0 = norm_layer(self.embed_dim)
-        self.norm_1 = norm_layer(self.embed_dim)
-        self.norm_2 = norm_layer(self.embed_dim)
-        self.norm_3 = norm_layer(self.embed_dim)
-        
         self.layer_norm = LayerNorm(self.category_emb_dim, eps=1e-6, data_format="channels_first")
-        
+
         self.fp16_enabled = False
+        
+    def init_weights_category(self):
+        init.kaiming_normal_(self.category_embedding, mode = 'fan_in', nonlinearity='relu')
         
     def init_weights(self, pretrained=None):
         
@@ -354,13 +379,9 @@ class ConvNeXt_V2_CASE2_CITY(nn.Module):
         if isinstance(m, (nn.Conv2d, nn.Linear)):
             trunc_normal_(m.weight, std=.02)
             nn.init.constant_(m.bias, 0)
-            
-    def init_weights_category(self):
-        init.kaiming_normal_(self.category_embedding, mode = 'fan_in', nonlinearity='relu')
 
     @auto_fp16()
     def forward(self, x):
-        print(x.shape)
     
         batch_size = len(x)
         outs = []
@@ -371,44 +392,46 @@ class ConvNeXt_V2_CASE2_CITY(nn.Module):
             x = self.stages[i](x)
             
             outs.append(x)
-                        
-           
+                                             
         outs[1] = self.deconv_1(outs[1])
         outs[2] = self.deconv_2(outs[2])
         outs[3] = self.deconv_3(outs[3]) # [2, 32, 80, 80]
         
-     
         
         batch_size, _, height, width =outs[0].shape
         
-        outs_concat = torch.cat([outs[0],outs[1],outs[2],outs[3]],dim=1).flatten(2).permute(0,2,1) 
+        outs_concat = torch.cat([outs[0],outs[1],outs[2],outs[3]],dim=1).flatten(2).permute(0,2,1) # 2,128,80,80 -> 2, 6400, 128
+
+        
+        #self.category_embedding : (6400,4)
               
-        category_embed = self.category_embedding.expand(batch_size, -1,-1) #torch.Size([2, 6400, 4]) # embedding 
+        category_embed = self.category_embedding.expand(batch_size, -1,-1) #torch.Size([2, 6400, 256]) # embedding 
         
-        query = self.query_li(category_embed).permute(0,2,1) #torch.Size([2, 6400, 4]) -> (2,4,6400) # embedding
-        
+        query = self.query_li(category_embed).permute(0,2,1) #torch.Size([2, 6400, 4]) -> (2,256,6400) # embedding
         key = self.key_li(outs_concat)  #feature 2,6400,128
-        
         value = self.value_li(outs_concat).permute(0,2,1) #feature
-        
         
         query = self.query_norm(query.permute(0, 2, 1)).permute(0, 2, 1)  # Back to original shape
         key = self.key_norm(key)
         value = self.value_norm(value.permute(0, 2, 1)).permute(0, 2, 1)
- 
-        
+            
         
         energy = torch.bmm(query, key)  # (2,4,128)
-        attention = self.softmax(energy / ((self.category_emb_dim) ** 0.5))  # (2,4,128)
+        attention = self.softmax(energy / (self.scale**(0.5)))  # (2,4,128)
         
         out = torch.bmm(attention, value)  # [B, HW, D] (2,4,6400)
-        
-        
-        out = out.view(batch_size, self.category_emb_dim, height, width) # (2,1000,80,80)
+
+                     
+        out = out.view(batch_size, self.category_emb_dim, height, width) # (2,4,80,80)
         
         out = self.layer_norm(out)
-           
+        
+        
+        
+         
         return out
+        
+
 
 
 

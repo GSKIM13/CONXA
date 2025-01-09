@@ -28,150 +28,123 @@ class BIMLAHead_BN_ConvNeXt(nn.Module):
             
         self.fp16_enabled = False
 
-    
     def forward(self, x):
-        
         x = self.head(x)
-        
         return x
 
 
 
 @HEADS.register_module()
-class ConvNeXt_Head_CASE3_SBD(BaseDecodeHead):
+class CONXA_Head_CITY(BaseDecodeHead):
     """ Vision Transformer with support for patch or hybrid CNN input stage
     """
     def __init__(self, img_size=768, middle_channels=256, head_channels=128, 
                 norm_layer=nn.BatchNorm2d, norm_cfg=None, category_emb_dim = 32, **kwargs):
-        super(ConvNeXt_Head_CASE3_SBD, self).__init__(**kwargs)
+        super(CONXA_Head_CITY, self).__init__(**kwargs)
         self.img_size = img_size
         self.norm_cfg = norm_cfg
         self.middle_channels = middle_channels
         self.BatchNorm = norm_layer
         self.middle_channels = middle_channels
         self.head_channels = head_channels
-        self.in_channel = category_emb_dim // 20 
+        self.in_channel = category_emb_dim // 19
 
         self.fp16_enabled = False
 
-        self.mlahead_aeroplane = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_aeroplane = nn.Sequential(
+        self.mlahead_road = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_road = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-                     
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))         
+       
+        self.edge_road = nn.Conv2d(self.head_channels, 1, 1)
+
+        self.mlahead_sidewalk = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_sidewalk = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True)) 
+      
+        self.edge_sidewalk = nn.Conv2d(self.head_channels, 1, 1)
+
+        self.mlahead_building = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_building = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))    
+       
+        self.edge_building = nn.Conv2d(self.head_channels, 1, 1)
+
+        self.mlahead_wall = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_wall = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))   
         
-        self.edge_aeroplane = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_wall = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_bicycle = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_bicycle = nn.Sequential(
+        self.mlahead_fence = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_fence = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))    
         
-        self.edge_bicycle = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_fence = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_bird = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_bird = nn.Sequential(
+        self.mlahead_pole = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_pole = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))  
+
+        self.edge_pole = nn.Conv2d(self.head_channels, 1, 1)
+
+        self.mlahead_traffic_light = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_traffic_light = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))   
+      
+        self.edge_traffic_light = nn.Conv2d(self.head_channels, 1, 1)
+
+        self.mlahead_traffic_sign = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_traffic_sign = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        
-        self.edge_bird = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_traffic_sign = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_boat = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_boat = nn.Sequential(
+        self.mlahead_vegetation = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_vegetation = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        
-        self.edge_boat = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_vegetation = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_bottle = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_bottle = nn.Sequential(
+        self.mlahead_terrain = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_terrain = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        
-        self.edge_bottle = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_terrain = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_bus = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_bus = nn.Sequential(
+        self.mlahead_sky = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_sky = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-            
-        self.edge_bus = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_car = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_car = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_car = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_cat = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_cat = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_cat = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_chair = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_chair = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_chair = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_cow = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_cow = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_cow = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_table = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_table = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_table = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_dog = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_dog = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_dog = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_horse = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_horse = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_horse = nn.Conv2d(self.head_channels, 1, 1)
-
-        self.mlahead_motorbike = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_motorbike = nn.Sequential(
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
-            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_motorbike = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_sky = nn.Conv2d(self.head_channels, 1, 1)
 
         self.mlahead_person = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
         self.global_features_person = nn.Sequential(
@@ -181,29 +154,37 @@ class ConvNeXt_Head_CASE3_SBD(BaseDecodeHead):
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
         self.edge_person = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_pottedplant = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_pottedplant = nn.Sequential(
+        self.mlahead_rider = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_rider = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_pottedplant = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_rider = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_sheep = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_sheep = nn.Sequential(
+        self.mlahead_car = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_car = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_sheep = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_car = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_sofa = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_sofa = nn.Sequential(
+        self.mlahead_truck = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_truck = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_sofa = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_truck = nn.Conv2d(self.head_channels, 1, 1)
+
+        self.mlahead_bus = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_bus = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
+        self.edge_bus = nn.Conv2d(self.head_channels, 1, 1)
 
         self.mlahead_train = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
         self.global_features_train = nn.Sequential(
@@ -213,161 +194,154 @@ class ConvNeXt_Head_CASE3_SBD(BaseDecodeHead):
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
         self.edge_train = nn.Conv2d(self.head_channels, 1, 1)
 
-        self.mlahead_tvmonitor = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
-        self.global_features_tvmonitor = nn.Sequential(
+        self.mlahead_motorcycle = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_motorcycle = nn.Sequential(
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
             nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
-        self.edge_tvmonitor = nn.Conv2d(self.head_channels, 1, 1)
+        self.edge_motorcycle = nn.Conv2d(self.head_channels, 1, 1)
 
-
-        
+        self.mlahead_bicycle = BIMLAHead_BN_ConvNeXt(in_channel=self.in_channel, middle_channels=self.middle_channels, head_channels=self.head_channels, norm_cfg=self.norm_cfg)
+        self.global_features_bicycle = nn.Sequential(
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1), build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 3, padding=1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True),
+            nn.Conv2d(self.head_channels, self.head_channels, 1),build_norm_layer(self.norm_cfg, self.head_channels)[1], nn.ReLU(inplace=True))
+        self.edge_bicycle = nn.Conv2d(self.head_channels, 1, 1)
         
     def forward(self, inputs):
     
-        inputs = inputs.chunk(20, dim = 1)
-
+        inputs = inputs.chunk(19, dim=1)
         
-        aeroplane = inputs[0]
-        bicycle = inputs[1]
-        bird = inputs[2]
-        boat = inputs[3]
-        bottle = inputs[4]
-        bus = inputs[5]
-        car = inputs[6]
-        cat = inputs[7]
-        chair = inputs[8]
-        cow = inputs[9]
-        table = inputs[10]
-        dog = inputs[11]
-        horse = inputs[12]
-        motorbike = inputs[13]
-        person = inputs[14]
-        pottedplant = inputs[15]
-        sheep = inputs[16]
-        sofa = inputs[17]
-        train = inputs[18]
-        tvmonitor = inputs[19]
+        road = inputs[0]
+        sidewalk = inputs[1]
+        building = inputs[2]
+        wall = inputs[3]
+        fence = inputs[4]
+        pole = inputs[5]
+        traffic_light = inputs[6]
+        traffic_sign = inputs[7]
+        vegetation = inputs[8]
+        terrain = inputs[9]
+        sky = inputs[10]
+        person = inputs[11]
+        rider = inputs[12]
+        car = inputs[13]
+        truck = inputs[14]
+        bus = inputs[15]
+        train = inputs[16]
+        motorcycle = inputs[17]
+        bicycle = inputs[18]
          
+        x_road = self.mlahead_road(road)
+        x_road = self.global_features_road(x_road)
+        edge_road = self.edge_road(x_road)
+        edge_road = torch.sigmoid(edge_road)
         
-
-        x_aeroplane = self.mlahead_aeroplane(aeroplane)
-        x_aeroplane = self.global_features_aeroplane(x_aeroplane)
-        edge_aeroplane = self.edge_aeroplane(x_aeroplane)
-        edge_aeroplane = torch.sigmoid(edge_aeroplane)
+        x_sidewalk = self.mlahead_sidewalk(sidewalk)
+        x_sidewalk = self.global_features_sidewalk(x_sidewalk)
+        edge_sidewalk = self.edge_sidewalk(x_sidewalk)
+        edge_sidewalk = torch.sigmoid(edge_sidewalk)
         
-        x_bicycle = self.mlahead_bicycle(bicycle)
-        x_bicycle = self.global_features_bicycle(x_bicycle)
-        edge_bicycle = self.edge_bicycle(x_bicycle)
-        edge_bicycle = torch.sigmoid(edge_bicycle)
+        x_building = self.mlahead_building(building)
+        x_building = self.global_features_building(x_building)
+        edge_building = self.edge_building(x_building)
+        edge_building = torch.sigmoid(edge_building)
         
-        x_bird = self.mlahead_bird(bird)
-        x_bird = self.global_features_bird(x_bird)
-        edge_bird = self.edge_bird(x_bird)
-        edge_bird = torch.sigmoid(edge_bird)
+        x_wall = self.mlahead_wall(wall)
+        x_wall = self.global_features_wall(x_wall)
+        edge_wall = self.edge_wall(x_wall)
+        edge_wall = torch.sigmoid(edge_wall)
         
-        x_boat = self.mlahead_boat(boat)
-        x_boat = self.global_features_boat(x_boat)
-        edge_boat = self.edge_boat(x_boat)
-        edge_boat = torch.sigmoid(edge_boat)
+        x_fence = self.mlahead_fence(fence)
+        x_fence = self.global_features_fence(x_fence)
+        edge_fence = self.edge_fence(x_fence)
+        edge_fence = torch.sigmoid(edge_fence)
         
-        x_bottle = self.mlahead_bottle(bottle)
-        x_bottle = self.global_features_bottle(x_bottle)
-        edge_bottle = self.edge_bottle(x_bottle)
-        edge_bottle = torch.sigmoid(edge_bottle)
+        x_pole = self.mlahead_pole(pole)
+        x_pole = self.global_features_pole(x_pole)
+        edge_pole = self.edge_pole(x_pole)
+        edge_pole = torch.sigmoid(edge_pole)
         
-        x_bus = self.mlahead_bus(bus)
-        x_bus = self.global_features_bus(x_bus)
-        edge_bus = self.edge_bus(x_bus)
-        edge_bus = torch.sigmoid(edge_bus)
+        x_traffic_light = self.mlahead_traffic_light(traffic_light)
+        x_traffic_light = self.global_features_traffic_light(x_traffic_light)
+        edge_traffic_light = self.edge_traffic_light(x_traffic_light)
+        edge_traffic_light = torch.sigmoid(edge_traffic_light)
         
-        x_car = self.mlahead_car(car)
-        x_car = self.global_features_car(x_car)
-        edge_car = self.edge_car(x_car)
-        edge_car = torch.sigmoid(edge_car)
+        x_traffic_sign = self.mlahead_traffic_sign(traffic_sign)
+        x_traffic_sign = self.global_features_traffic_sign(x_traffic_sign)
+        edge_traffic_sign = self.edge_traffic_sign(x_traffic_sign)
+        edge_traffic_sign = torch.sigmoid(edge_traffic_sign)
         
-        x_cat = self.mlahead_cat(cat)
-        x_cat = self.global_features_cat(x_cat)
-        edge_cat = self.edge_cat(x_cat)
-        edge_cat = torch.sigmoid(edge_cat)
+        x_vegetation = self.mlahead_vegetation(vegetation)
+        x_vegetation = self.global_features_vegetation(x_vegetation)
+        edge_vegetation = self.edge_vegetation(x_vegetation)
+        edge_vegetation = torch.sigmoid(edge_vegetation)
         
-        x_chair = self.mlahead_chair(chair)
-        x_chair = self.global_features_chair(x_chair)
-        edge_chair = self.edge_chair(x_chair)
-        edge_chair = torch.sigmoid(edge_chair)
+        x_terrain = self.mlahead_terrain(terrain)
+        x_terrain = self.global_features_terrain(x_terrain)
+        edge_terrain = self.edge_terrain(x_terrain)
+        edge_terrain = torch.sigmoid(edge_terrain)
         
-        x_cow = self.mlahead_cow(cow)
-        x_cow = self.global_features_cow(x_cow)
-        edge_cow = self.edge_cow(x_cow)
-        edge_cow = torch.sigmoid(edge_cow)
-        
-        x_table = self.mlahead_table(table)
-        x_table = self.global_features_table(x_table)
-        edge_table = self.edge_table(x_table)
-        edge_table = torch.sigmoid(edge_table)
-        
-        x_dog = self.mlahead_dog(dog)
-        x_dog = self.global_features_dog(x_dog)
-        edge_dog = self.edge_dog(x_dog)
-        edge_dog = torch.sigmoid(edge_dog)
-        
-        x_horse = self.mlahead_horse(horse)
-        x_horse = self.global_features_horse(x_horse)
-        edge_horse = self.edge_horse(x_horse)
-        edge_horse = torch.sigmoid(edge_horse)
-        
-        x_motorbike = self.mlahead_motorbike(motorbike)
-        x_motorbike = self.global_features_motorbike(x_motorbike)
-        edge_motorbike = self.edge_motorbike(x_motorbike)
-        edge_motorbike = torch.sigmoid(edge_motorbike)
+        x_sky = self.mlahead_sky(sky)
+        x_sky = self.global_features_sky(x_sky)
+        edge_sky = self.edge_sky(x_sky)
+        edge_sky = torch.sigmoid(edge_sky)
         
         x_person = self.mlahead_person(person)
         x_person = self.global_features_person(x_person)
         edge_person = self.edge_person(x_person)
         edge_person = torch.sigmoid(edge_person)
         
-        x_pottedplant = self.mlahead_pottedplant(pottedplant)
-        x_pottedplant = self.global_features_pottedplant(x_pottedplant)
-        edge_pottedplant = self.edge_pottedplant(x_pottedplant)
-        edge_pottedplant = torch.sigmoid(edge_pottedplant)
+        x_rider = self.mlahead_rider(rider)
+        x_rider = self.global_features_rider(x_rider)
+        edge_rider = self.edge_rider(x_rider)
+        edge_rider = torch.sigmoid(edge_rider)
         
-        x_sheep = self.mlahead_sheep(sheep)
-        x_sheep = self.global_features_sheep(x_sheep)
-        edge_sheep = self.edge_sheep(x_sheep)
-        edge_sheep = torch.sigmoid(edge_sheep)
+        x_car = self.mlahead_car(car)
+        x_car = self.global_features_car(x_car)
+        edge_car = self.edge_car(x_car)
+        edge_car = torch.sigmoid(edge_car)
         
-        x_sofa = self.mlahead_sofa(sofa)
-        x_sofa = self.global_features_sofa(x_sofa)
-        edge_sofa = self.edge_sofa(x_sofa)
-        edge_sofa = torch.sigmoid(edge_sofa)
+        x_truck = self.mlahead_truck(truck)
+        x_truck = self.global_features_truck(x_truck)
+        edge_truck = self.edge_truck(x_truck)
+        edge_truck = torch.sigmoid(edge_truck)
+        
+        x_bus = self.mlahead_bus(bus)
+        x_bus = self.global_features_bus(x_bus)
+        edge_bus = self.edge_bus(x_bus)
+        edge_bus = torch.sigmoid(edge_bus)
         
         x_train = self.mlahead_train(train)
         x_train = self.global_features_train(x_train)
         edge_train = self.edge_train(x_train)
         edge_train = torch.sigmoid(edge_train)
         
+        x_motorcycle = self.mlahead_motorcycle(motorcycle)
+        x_motorcycle = self.global_features_motorcycle(x_motorcycle)
+        edge_motorcycle = self.edge_motorcycle(x_motorcycle)
+        edge_motorcycle = torch.sigmoid(edge_motorcycle)
         
-        x_tvmonitor = self.mlahead_tvmonitor(tvmonitor)
-        x_tvmonitor = self.global_features_tvmonitor(x_tvmonitor)
-        edge_tvmonitor = self.edge_tvmonitor(x_tvmonitor)
-        edge_tvmonitor = torch.sigmoid(edge_tvmonitor)
+        x_bicycle = self.mlahead_bicycle(bicycle)
+        x_bicycle = self.global_features_bicycle(x_bicycle)
+        edge_bicycle = self.edge_bicycle(x_bicycle)
+        edge_bicycle = torch.sigmoid(edge_bicycle)
         
-              
-
         x = torch.cat([
-            x_aeroplane, x_bicycle, x_bird, x_boat,
-            x_bottle, x_bus, x_car, x_cat, x_chair, x_cow, x_table,
-            x_dog, x_horse, x_motorbike, x_person, x_pottedplant,
-            x_sheep, x_sofa, x_train, x_tvmonitor
+            x_road, x_sidewalk, x_building, x_wall,
+            x_fence, x_pole, x_traffic_light, x_traffic_sign, x_vegetation, x_terrain, x_sky,
+            x_person, x_rider, x_car, x_truck, x_bus,
+            x_train, x_motorcycle, x_bicycle
         ], dim=1)
         
         edge = torch.cat([
-            edge_aeroplane, edge_bicycle, edge_bird, edge_boat,
-            edge_bottle, edge_bus, edge_car, edge_cat, edge_chair, edge_cow, edge_table,
-            edge_dog, edge_horse, edge_motorbike, edge_person, edge_pottedplant,
-            edge_sheep, edge_sofa, edge_train, edge_tvmonitor
+            edge_road, edge_sidewalk, edge_building, edge_wall,
+            edge_fence, edge_pole, edge_traffic_light, edge_traffic_sign, edge_vegetation, edge_terrain, edge_sky,
+            edge_person, edge_rider, edge_car, edge_truck, edge_bus,
+            edge_train, edge_motorcycle, edge_bicycle
         ], dim=1)
         
-        
         return edge, x
+

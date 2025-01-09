@@ -33,12 +33,12 @@ class BIMLAHead_BN_ConvNeXt(nn.Module):
 
 
 @HEADS.register_module()
-class ConvNeXt_Head_CASE3_BN(BaseDecodeHead):
+class CONXA_Head(BaseDecodeHead):
     """ Vision Transformer with support for patch or hybrid CNN input stage
     """
     def __init__(self, img_size=768, middle_channels=256, head_channels=128, 
                 norm_layer=nn.BatchNorm2d, norm_cfg=None, category_emb_dim = 32, **kwargs):
-        super(ConvNeXt_Head_CASE3_BN, self).__init__(**kwargs)
+        super(CONXA_Head, self).__init__(**kwargs)
         self.img_size = img_size
         self.norm_cfg = norm_cfg
         self.middle_channels = middle_channels

@@ -1,4 +1,4 @@
-from .convnext_loss import (ConvNeXtLoss)
+from .conxa_loss import CONXALoss
 
 
 from .utils import reduce_loss, weight_reduce_loss, weighted_loss

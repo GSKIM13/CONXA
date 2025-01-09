@@ -239,7 +239,7 @@ class GRN(nn.Module):
                
         
 @BACKBONES.register_module()
-class ConvNeXt_V2_CASE2_SBD(nn.Module):
+class CONXA_Backbone_SBD(nn.Module):
     r""" ConvNeXt
         A PyTorch impl of : `A ConvNet for the 2020s`  -
           https://arxiv.org/pdf/2201.03545.pdf

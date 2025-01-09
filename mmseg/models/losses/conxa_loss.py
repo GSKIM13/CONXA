@@ -22,7 +22,7 @@ def _expand_onehot_labels(labels, label_weights, label_channels):
 
 
 @LOSSES.register_module()
-class ConvNeXtLoss(nn.Module):
+class CONXALoss(nn.Module):
     """HEDLoss.
     Args:
         use_sigmoid (bool, optional): Whether the prediction uses sigmoid
@@ -45,9 +45,9 @@ class ConvNeXtLoss(nn.Module):
                  gamma = 0.5,
                  beta = 8,
                  dice_coeff = 2500,
-                 rev_dice_coeff = 2500,
+                 inv_dice_coeff = 2500,
                  iou_coeff = 0):
-        super(ConvNeXtLoss, self).__init__()
+        super(CONXALoss, self).__init__()
         assert (use_sigmoid is False) or (use_mask is False)
         self.use_sigmoid = use_sigmoid
         self.use_mask = use_mask
@@ -57,7 +57,7 @@ class ConvNeXtLoss(nn.Module):
         self.gamma = gamma
         self.beta = beta
         self.dice_coeff = dice_coeff
-        self.rev_dice_coeff = rev_dice_coeff
+        self.inv_dice_coeff = inv_dice_coeff
         self.iou_coeff = iou_coeff
 
         self.cls_criterion = self.hed_attention_loss
@@ -178,7 +178,7 @@ class ConvNeXtLoss(nn.Module):
             avg_factor=avg_factor)
             
         dice = self.dice_coeff *self.dice_loss(cls_score, label)
-        rev_dice = self.rev_dice_coeff * self.dice_loss(1-cls_score, 1-label)
+        rev_dice = self.inv_dice_coeff * self.dice_loss(1-cls_score, 1-label)
         
         iou = self.iou_coeff * self.iou_loss(cls_score, label)
         

@@ -1,8 +1,9 @@
-from .convnext_v2_case8_bn import ConvNeXt_V2_CASE8_BN
-from .convnext_v2_case8 import ConvNeXt_V2_CASE8
 
+from .conxa_backbone import CONXA_Backbone
+from .conxa_backbone_city import CONXA_Backbone_CITY
+from .conxa_backbone_sbd import CONXA_Backbone_SBD
 
 
 __all__ = [
-    'ConvNeXt_V2_CASE8_BN','ConvNeXt_V2_CASE8'
+    'CONXA_Backbone','CONXA_Backbone_CITY', 'CONXA_Backbone_SBD'
 ]
