@@ -68,18 +68,18 @@ Follow Sequence provided by [SEAL](https://github.com/Chrisding/seal)
 We assume that you'are in CONXA Folder.<br/>
 **For BSDS-RIND Dataset**<br/>
 ```
-bash ./tools/dist_train.sh configs/bsds-rind/ConvNeXt_V2_case8.py 1 --work-dir work_dirs/{result_name}
+bash ./tools/dist_train.sh configs/bsds-rind/CONXA_BSDS-RIND.py 1 --work-dir work_dirs/{result_name}
 ```
 **For SBD Dataset**<br/>
 **currently not available**
 ```
-bash ./tools/dist_train.sh configs/sbd/ConvNeXt_V2_case8.py 1 --work-dir work_dirs/{result_name}
+bash ./tools/dist_train.sh configs/sbd/CONXA_SBD_CLS.py 1 --work-dir work_dirs/{result_name}
 ```
 
 **For CITYSCAEPS Dataset**<br/>
 **currently not available**
 ```
-bash ./tools/dist_train.sh configs/cityscapes/ConvNeXt_V2_case8.py 1 --work-dir work_dirs/{result_name}
+bash ./tools/dist_train.sh configs/cityscapes/CONXA_CITY.py 1 --work-dir work_dirs/{result_name}
 ```
 
 ## Test 
