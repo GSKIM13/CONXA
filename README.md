@@ -71,13 +71,13 @@ We assume that you'are in CONXA Folder.<br/>
 bash ./tools/dist_train.sh configs/bsds-rind/CONXA_BSDS-RIND.py 1 --work-dir work_dirs/{result_name}
 ```
 **For SBD Dataset**<br/>
-**currently not available**
+**currently not available, Planned Update**
 ```
 bash ./tools/dist_train.sh configs/sbd/CONXA_SBD_CLS.py 1 --work-dir work_dirs/{result_name}
 ```
 
 **For CITYSCAEPS Dataset**<br/>
-**currently not available**
+**currently not available, Planned Update**
 ```
 bash ./tools/dist_train.sh configs/cityscapes/CONXA_CITY.py 1 --work-dir work_dirs/{result_name}
 ```
@@ -90,13 +90,13 @@ test.py --checkpoint pretrained/iter_3000.pth --configs configs/bsds-rind/ConvNe
 ```
 
 **For SBD Dataset**<br/>
-**currently not available**
+**currently not available, Planned Update**
 ```
 test.py --checkpoint pretrained/iter_20000.pth --configs configs/sbd/CONXA_SBD_CLS.py --tmpdir result
 ```
 
 **For CITYSCAEPS Dataset**<br/>
-**currently not available**
+**currently not available, Planned Update**
 ```
 test.py --checkpoint pretrained/iter_80000.pth --configs configs/cityscapes/CONXA_CITY.py --tmpdir result
 ```
