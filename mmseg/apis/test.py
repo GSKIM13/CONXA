@@ -194,6 +194,169 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False, iterNum =
     return results
     '''
 
+def multi_gpu_test_city(model, data_loader, tmpdir=None, gpu_collect=False, iterNum=None):
+    model.eval()
+    print(tmpdir)
+    dataset = data_loader.dataset
+    rank, world_size = get_dist_info()
+
+    if iterNum is None:
+        output_png_dir = os.path.join(tmpdir)
+    else:
+
+        output_png_dir = os.path.join(tmpdir)
+
+    
+    if not os.path.exists(output_png_dir):
+        os.makedirs(output_png_dir, exist_ok=True)
+
+ 
+                  
+    categories = ['road', 'sidewalk', 'building', 'wall', 'fence', 'pole',
+               'traffic light', 'traffic sign', 'vegetation', 'terrain', 'sky',
+               'person', 'rider', 'car', 'truck', 'bus', 'train', 'motorcycle',
+               'bicycle']
+               
+    png_result = ['class_001', 'class_002', 'class_003', 'class_004', 'class_005',
+               'class_006', 'class_007', 'class_008', 'class_009', 'class_010',
+               'class_011', 'class_012', 'class_013', 'class_014', 'class_015',
+               'class_016', 'class_017', 'class_018', 'class_019']
+                  
+
+    # categories = ['bottle', 'chair', 'diningtable', 'person']
+
+        
+    for png in png_result:
+        png_output_dir = os.path.join(output_png_dir, png)
+        if not os.path.exists(png_output_dir):
+            os.makedirs(png_output_dir)
+
+    if rank == 0:
+        prog_bar = mmcv.ProgressBar(len(dataset))
+
+    start_time = time.time()
+    for i, data in enumerate(data_loader):
+        with torch.no_grad():
+            result = model(return_loss=False, rescale=True, **data)
+            result = result.squeeze()
+            
+            for idx, category in enumerate(categories):
+                pred = result[idx]
+                if isinstance(pred, torch.Tensor):
+                    pred = pred.cpu().numpy()
+                
+                img_id = data['img_metas'][-1].data[-1][-1]['img_id']
+
+                png_output_dir = os.path.join(output_png_dir, png_result[idx], )
+
+
+                pred = (pred * 255).astype(np.uint8)
+                imsave(os.path.join(png_output_dir, '{}.png'.format(img_id)), pred)
+
+
+        if rank == 0:
+            batch_size = data['img'][0].size(0)
+            for _ in range(batch_size * world_size):
+                prog_bar.update()
+
+    tm = time.time() - start_time
+    print(tm)
+
+def multi_gpu_test_sbd(model, data_loader, tmpdir=None, gpu_collect=False, iterNum=None):
+    model.eval()
+    print(tmpdir)
+    dataset = data_loader.dataset
+    rank, world_size = get_dist_info()
+
+    if iterNum is None:
+        output_mat_dir = os.path.join(tmpdir, 'mat')
+        output_png_dir = os.path.join(tmpdir, 'png')
+    else:
+        output_mat_dir = os.path.join(tmpdir, str(iterNum), 'mat')
+        output_png_dir = os.path.join(tmpdir, str(iterNum), 'png')
+
+    if not os.path.exists(output_png_dir):
+        os.makedirs(output_png_dir, exist_ok=True)
+
+    categories = ['aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat',
+                  'chair', 'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person', 
+                  'pottedplant', 'sheep', 'sofa', 'train', 'tvmonitor']
+
+    png_result = ['class_001', 'class_002', 'class_003', 'class_004', 'class_005',
+                  'class_006', 'class_007', 'class_008', 'class_009', 'class_010',
+                  'class_011', 'class_012', 'class_013', 'class_014', 'class_015',
+                  'class_016', 'class_017', 'class_018', 'class_019', 'class_020']
+
+    for png in png_result:
+        png_output_dir = os.path.join(output_png_dir, png, 'png')
+        if not os.path.exists(png_output_dir):
+            os.makedirs(png_output_dir)
+
+    if rank == 0:
+        prog_bar = mmcv.ProgressBar(len(dataset))
+
+    start_time = time.time()
+    for i, data in enumerate(data_loader):
+        with torch.no_grad():
+            img_meta = data['img_metas'][0].data[0][0]  
+            img_shape = img_meta['img_shape']
+            ori_shape = img_meta['ori_shape']  # (H, W, C)
+
+            img = data['img'][0]
+
+            if img.dim() == 4:
+                img = img.squeeze(0)
+
+            if img.dim() == 3:
+                img = img.numpy().transpose(1, 2, 0)  # (C, H, W) -> (H, W, C)
+            else:
+                raise ValueError(f"Unexpected img dimension: {img.dim()}")
+
+            # Pad to minimum size
+            padded_img, (bottom, right) = pad_to_min_size(img, min_size=(340, 340))
+
+            # Convert back to tensor
+            padded_img_tensor = torch.tensor(padded_img.transpose(2, 0, 1)).unsqueeze(0).to(
+                torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+            )
+            
+            #print(padded_img_tensor.shape)
+            data['img'] = [padded_img_tensor]  # list 
+            
+            #print(data)
+            
+
+
+            # Model inference
+            result = model(return_loss=False, rescale=True, **data)
+            result = result.squeeze()
+            
+
+            for idx, category in enumerate(categories):
+                pred = result[idx]
+
+                if isinstance(pred, torch.Tensor):
+                    pred = pred.cpu().numpy()
+
+                img_id = data['img_metas'][-1].data[-1][-1]['img_id']
+                png_output_dir = os.path.join(output_png_dir, png_result[idx])
+
+                # Scale and remove padding
+                pred = (pred * 255).astype(np.uint8)
+                pred = remove_padding(pred, bottom, right)
+
+                # Save the image
+                imsave(os.path.join(png_output_dir, f'{img_id}.png'), pred, check_contrast=False)
+
+        if rank == 0:
+            batch_size = data['img'][0].size(0)
+            for _ in range(batch_size * world_size):
+                prog_bar.update()
+
+    tm = time.time() - start_time
+    print(tm)
+
+
 def collect_results_cpu(result_part, size, tmpdir=None):
     """Collect results with CPU."""
     rank, world_size = get_dist_info()

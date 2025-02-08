@@ -82,3 +82,95 @@ class DistEvalHook(EvalHook):
         if runner.rank == 0:
             print('\n')
             #self.evaluate(runner, results)
+
+
+class DistEvalHook_SBD(EvalHook):
+    """Distributed evaluation hook.
+
+    Attributes:
+        dataloader (DataLoader): A PyTorch dataloader.
+        interval (int): Evaluation interval (by epochs). Default: 1.
+        tmpdir (str | None): Temporary directory to save the results of all
+            processes. Default: None.
+        gpu_collect (bool): Whether to use gpu or cpu to collect results.
+            Default: False.
+    """
+
+    def __init__(self,
+                 dataloader,
+                 interval=1,
+                 gpu_collect=False,
+                 **eval_kwargs):
+        if not isinstance(dataloader, DataLoader):
+            raise TypeError(
+                'dataloader must be a pytorch DataLoader, but got {}'.format(
+                    type(dataloader)))
+        self.dataloader = dataloader
+        self.interval = interval
+        self.gpu_collect = gpu_collect
+        self.eval_kwargs = eval_kwargs
+        self.interval_num=0
+
+    def after_train_iter(self, runner):
+        """After train epoch hook."""
+        if not self.every_n_iters(runner, self.interval):
+            return
+        from mmseg.apis import multi_gpu_test_sbd
+        runner.log_buffer.clear()
+        self.interval_num = self.interval_num + 1
+        self.iter_num = self.interval_num  * self.interval
+        multi_gpu_test_sbd(
+            runner.model,
+            self.dataloader,
+            tmpdir=osp.join(runner.work_dir),
+            gpu_collect=self.gpu_collect,
+            iterNum = self.iter_num)
+        if runner.rank == 0:
+            print('\n')
+            #self.evaluate(runner, results)
+
+
+class DistEvalHook_CITY(EvalHook):
+    """Distributed evaluation hook.
+
+    Attributes:
+        dataloader (DataLoader): A PyTorch dataloader.
+        interval (int): Evaluation interval (by epochs). Default: 1.
+        tmpdir (str | None): Temporary directory to save the results of all
+            processes. Default: None.
+        gpu_collect (bool): Whether to use gpu or cpu to collect results.
+            Default: False.
+    """
+
+    def __init__(self,
+                 dataloader,
+                 interval=1,
+                 gpu_collect=False,
+                 **eval_kwargs):
+        if not isinstance(dataloader, DataLoader):
+            raise TypeError(
+                'dataloader must be a pytorch DataLoader, but got {}'.format(
+                    type(dataloader)))
+        self.dataloader = dataloader
+        self.interval = interval
+        self.gpu_collect = gpu_collect
+        self.eval_kwargs = eval_kwargs
+        self.interval_num=0
+
+    def after_train_iter(self, runner):
+        """After train epoch hook."""
+        if not self.every_n_iters(runner, self.interval):
+            return
+        from mmseg.apis import multi_gpu_test_city
+        runner.log_buffer.clear()
+        self.interval_num = self.interval_num + 1
+        self.iter_num = self.interval_num  * self.interval
+        multi_gpu_test_city(
+            runner.model,
+            self.dataloader,
+            tmpdir=osp.join(runner.work_dir),
+            gpu_collect=self.gpu_collect,
+            iterNum = self.iter_num)
+        if runner.rank == 0:
+            print('\n')
+            #self.evaluate(runner, results)

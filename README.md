@@ -76,13 +76,13 @@ bash ./tools/dist_train.sh configs/bsds-rind/CONXA_BSDS-RIND.py 1 --work-dir wor
 **For SBD Dataset**<br/>
 **currently not available, Planned Update**
 ```
-bash ./tools/dist_train.sh configs/sbd/CONXA_SBD_CLS.py 1 --work-dir work_dirs/{result_name}
+bash ./tools/dist_train_sbd.sh configs/sbd/CONXA_SBD_CLS.py 1 --work-dir work_dirs/{result_name}
 ```
 
 **For CITYSCAEPS Dataset**<br/>
 **currently not available, Planned Update**
 ```
-bash ./tools/dist_train.sh configs/cityscapes/CONXA_CITY.py 1 --work-dir work_dirs/{result_name}
+bash ./tools/dist_train_city.sh configs/cityscapes/CONXA_CITY.py 1 --work-dir work_dirs/{result_name}
 ```
 
 ## Test 
