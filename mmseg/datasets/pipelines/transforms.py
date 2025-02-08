@@ -8,6 +8,8 @@ from ..builder import PIPELINES
 
 import cv2
 
+from PIL import Image, ImageOps
+
 @PIPELINES.register_module()
 class PadToMinimumSizeWithSeg(object):
     """Pad the image & mask to ensure the size is at least min_size.
@@ -1020,7 +1022,7 @@ class RandomScaleCrop(object):
         repr_str += f'ignore_index={self.ignore_index})'
         return repr_str
     
-    
+
 @PIPELINES.register_module()
 class RandomCrop(object):
     """Random crop the image & seg.
