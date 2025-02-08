@@ -14,8 +14,8 @@ def sparse_to_dense(sparse_array):
     
 def load_segmentation_from_mat(mat_file):
     mat_data = scipy.io.loadmat(mat_file)
-    gt_cls = mat_data['GTinst']
-    boundaries = gt_cls['Boundaries'][0, 0] 
+    gt_inst = mat_data['labelEdge']
+    boundaries = gt_inst
     dense_boundaries = sparse_to_dense(boundaries)
     return dense_boundaries
     
