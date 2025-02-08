@@ -3,7 +3,7 @@ from .formating import (Collect, ImageToTensor, ToDataContainer, ToTensor,
                         Transpose, to_tensor)
 from .loading import LoadAnnotations, LoadImageFromFile, LoadAnnotationsMulticueEdge,LoadAnnotationsMulticueBoundary, LoadAnnotations_SBD
 from .test_time_aug import MultiScaleFlipAug
-from .transforms import (Normalize, Pad, PhotoMetricDistortion, RandomCrop,
+from .transforms import (Normalize, Pad, PhotoMetricDistortion, RandomCrop, RandomScaleCrop, RandomCropTrain,
                          RandomFlip, Resize, SegRescale)
 
 __all__ = [

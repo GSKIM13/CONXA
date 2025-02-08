@@ -867,6 +867,160 @@ class RandomCropTrain(object):
     def __repr__(self):
         return self.__class__.__name__ + f'(crop_size={self.crop_size})'
 
+
+@PIPELINES.register_module()
+class RandomScaleCrop(object):
+    """Randomly scales, crops, and optionally flips the image and segmentation map.
+
+    Args:
+        base_size (int): Base size for scaling.
+        crop_size (int): Desired crop size.
+        scale_range (tuple): Tuple of two floats specifying the scaling range.
+            Default is (0.75, 2.0).
+        flip_prob (float): Probability of performing horizontal flip. Default is 0.5.
+        ignore_index (int): Index to ignore in segmentation map during loss computation.
+            Default is 255.
+    """
+
+    def __init__(self,
+
+                 crop_size,
+                 scale_range=(0.75, 2.0),
+                 flip_prob=0.5,
+                 ignore_index=255, base_size = 520):
+        self.base_size = base_size
+        self.crop_size = crop_size
+        self.scale_range = scale_range
+        self.flip_prob = flip_prob
+        self.ignore_index = ignore_index
+
+        # Mean values for image normalization (ImageNet means)
+        self.mean = [0.485, 0.456, 0.406]
+        self.std = [0.229, 0.224, 0.225]
+
+    def random_flip(self, img, mask):
+        """Randomly flip the image and mask horizontally."""
+        
+
+
+        if random.random() < self.flip_prob:
+            img = np.fliplr(img)
+            mask = np.fliplr(mask)
+
+
+        return img, mask
+
+    def random_scale(self, img, mask):
+        """Randomly scale the image and mask."""
+        
+
+        short_size = random.randint(int(self.base_size * self.scale_range[0]),
+                                    int(self.base_size * self.scale_range[1]))
+        h, w = img.shape[:2]
+        if h > w:
+            ow = short_size
+            oh = int(h * short_size / w)
+        else:
+            oh = short_size
+            ow = int(w * short_size / h)
+        
+        # Convert mask from bool to uint8
+        if mask.dtype == np.bool_ or mask.dtype == bool:
+            mask = mask.astype(np.uint8) * 255  # Convert boolean to uint8 (0 and 255)
+                 
+        img_pil = Image.fromarray(img)
+        img_pil = img_pil.resize((ow, oh), Image.BILINEAR)
+        img = np.array(img_pil)
+        
+        resized_mask_list = []
+        for i in range(mask.shape[2]):  # Iterate over the 19 channels (classes)
+            single_class_mask = mask[:, :, i]  # Extract the 2D mask for the i-th class
+            mask_pil = Image.fromarray(single_class_mask)  # Convert to PIL Image
+            mask_pil = mask_pil.resize((ow, oh), Image.NEAREST)  # Resize using nearest neighbor
+            resized_single_class_mask = np.array(mask_pil)  # Convert back to numpy array
+            resized_mask_list.append(resized_single_class_mask)  # Append to list
+    
+        # Stack resized masks along the third dimension to form the final mask
+        mask = np.stack(resized_mask_list, axis=-1)
+        
+        return img, mask
+
+    def pad(self, img, mask):
+        """Pad image and mask to the desired crop size."""
+        h, w = img.shape[:2]  
+        pad_h = max(self.crop_size[0] - h, 0)
+        pad_w = max(self.crop_size[1] - w, 0)
+    
+        if pad_w > 0 or pad_h > 0:
+            img = np.pad(img, ((0, pad_h), (0, pad_w), (0, 0)), mode='constant', constant_values=[(int(255 * m),) for m in self.mean])
+            mask = np.pad(mask, ((0, pad_h), (0, pad_w)), mode='constant', constant_values=self.ignore_index)
+    
+        return img, mask
+
+    
+    def random_crop(self, img, mask):
+        """Randomly crop the image and mask."""
+        h, w = img.shape[:2]
+        x1 = random.randint(0, w - self.crop_size[0])
+        y1 = random.randint(0, h - self.crop_size[1])
+        img = img[y1:y1 + self.crop_size[0], x1:x1 + self.crop_size[1], :]
+        mask = mask[y1:y1 + self.crop_size[0], x1:x1 + self.crop_size[1]]
+        return img, mask
+
+    def normalize(self, img):
+        """Normalize the image."""
+        img = np.array(img).astype(np.float32) / 255.0
+        img = (img - self.mean) / self.std
+        return img
+
+    def to_tensor(self, img, mask):
+        """Convert image and mask to torch tensors."""
+        img = torch.from_numpy(img.transpose((2, 0, 1))).float()
+        mask = np.array(mask, dtype=np.uint8)
+        return img, torch.from_numpy(mask).long()
+
+    def __call__(self, results):
+        """Apply transformations to the image and mask."""
+
+        img = results['img']
+        mask = results['gt_semantic_seg']
+
+        # Apply random flip
+        img, mask = self.random_flip(img, mask)
+
+        # Apply random scale
+        img, mask = self.random_scale(img, mask)
+
+        # Apply padding if necessary
+        img, mask = self.pad(img, mask)
+
+        # Apply random crop
+        img, mask = self.random_crop(img, mask)
+
+        # Normalize image
+        img = self.normalize(img)
+        
+        
+        img = np.transpose(img, (2, 0, 1)).astype(np.float32)
+        #mask = np.transpose(mask, (2,0,1))
+        mask = (mask / 255).astype(np.float32)
+
+
+        # Update results
+        results['img'] = img
+        results['gt_semantic_seg'] = mask
+        results['img_shape'] = img.shape
+
+        return results
+
+    def __repr__(self):
+        repr_str = self.__class__.__name__
+        repr_str += f'(base_size={self.base_size}, crop_size={self.crop_size}, '
+        repr_str += f'scale_range={self.scale_range}, flip_prob={self.flip_prob}, '
+        repr_str += f'ignore_index={self.ignore_index})'
+        return repr_str
+    
+    
 @PIPELINES.register_module()
 class RandomCrop(object):
     """Random crop the image & seg.
