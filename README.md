@@ -15,6 +15,9 @@ pip install mmcv-full==1.2.0 -f https://download.openmmlab.com/mmcv/dist/cu110/t
 cd CONXA
 pip install -e .  # or "python setup.py develop"
 pip install -r requirements/optional.txt
+conda install -c conda-forge rust
+pip install yapf==0.32.0
+pip install h5py scipy pandas timm
 ```
 
 ## Dataset Preparation 
