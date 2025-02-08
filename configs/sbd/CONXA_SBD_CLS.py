@@ -70,7 +70,7 @@ data = dict(
         data_root='/home/gwangsoo13kim/EdgeSementic/CONXA/data/sbd-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
-        split='trainvalaug_cls_orig_.txt',
+        split='trainvalaug_cls_orig.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(type='LoadAnnotations_SBD'),
@@ -92,7 +92,7 @@ data = dict(
         data_root='/home/gwangsoo13kim/EdgeSementic/CONXA/data/sbd-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
-        split='test_cls_orig_.txt',
+        split='test_cls_orig.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
@@ -113,7 +113,7 @@ data = dict(
         data_root='/home/gwangsoo13kim/EdgeSementic/CONXA/data/sbd-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
-        split='test_cls_orig_.txt',
+        split='test_cls_orig.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
             dict(
