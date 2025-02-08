@@ -67,7 +67,7 @@ data = dict(
     workers_per_gpu=10,
     train=dict(
         type='PascalVOCDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/DFF_a100/data/sbd-preprocess/data_proc/',
+        data_root='/home/gwangsoo13kim/EdgeSementic/CONXA/data/sbd-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
         split='trainvalaug_inst_orig_.txt',
@@ -89,7 +89,7 @@ data = dict(
         ]),
     val=dict(
         type='PascalVOCDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/DFF_a100/data/sbd-preprocess/data_proc/',
+        data_root='/home/gwangsoo13kim/EdgeSementic/CONXA/data/sbd-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
         split='test_inst_orig_.txt',
@@ -110,7 +110,7 @@ data = dict(
         ]),
     test=dict(
         type='PascalVOCDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/DFF_a100/data/sbd-preprocess/data_proc/',
+        data_root='/home/gwangsoo13kim/EdgeSementic/CONXA/data/sbd-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
         split='test_inst_orig_.txt',
