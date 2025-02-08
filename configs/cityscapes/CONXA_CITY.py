@@ -135,7 +135,7 @@ optimizer = dict(
 optimizer_config = dict()
 total_iters = 80000
 checkpoint_config = dict(by_epoch=False, interval=80000)
-evaluation = dict(interval=100000, metric='mIoU')
+evaluation = dict(interval=20, metric='mIoU')
 
 lr_config = dict(policy='fixed')
 find_unused_parameters = True
