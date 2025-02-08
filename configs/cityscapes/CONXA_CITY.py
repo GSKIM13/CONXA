@@ -62,7 +62,7 @@ data = dict(
     workers_per_gpu=10,
     train=dict(
         type='CityscapesDataset',
-        data_root='/home/gwangsoo13kim/CONXA/data/cityscapes-preprocess/data_proc/',
+        data_root='/home/gwangsoo13kim/EdgeSemenatic/CONXA/data/cityscapes-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
         split='train.txt',
@@ -77,7 +77,7 @@ data = dict(
         ]),
     val=dict(
         type='CityscapesDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/EDTER_TriDecTr_CITY/data/cityscapes-preprocess/data_proc/',
+        data_root='/home/gwangsoo13kim/EdgeSemenatic/CONXA/data/cityscapes-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
         split='val.txt',
@@ -98,7 +98,7 @@ data = dict(
         ]),
     test=dict(
         type='CityscapesDataset',
-        data_root='/home/gwangsoo13kim/EdgeSementic/EDTER_TriDecTr_CITY/data/cityscapes-preprocess/data_proc/',
+        data_root='/home/gwangsoo13kim/EdgeSemenatic/CONXA/data/cityscapes-preprocess/data_proc/',
         img_dir='',
         ann_dir='',
         split='val.txt',
