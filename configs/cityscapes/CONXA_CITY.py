@@ -68,7 +68,7 @@ data = dict(
         split='train.txt',
         pipeline=[
             dict(type='LoadImageFromFile'),
-            dict(type='LoadAnnotations_SBD'),
+            dict(type='LoadAnnotations_CITY'),
             dict(
                 type='RandomScaleCrop',
                 crop_size=(320, 320)),
