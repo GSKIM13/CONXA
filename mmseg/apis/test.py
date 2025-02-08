@@ -12,6 +12,7 @@ from mmcv.runner import get_dist_info
 import cv2
 import time
 import numpy as np
+from skimage.io import imsave
 
 def single_gpu_test(model, data_loader, show=False, out_dir=None):
     """Test with single GPU.
