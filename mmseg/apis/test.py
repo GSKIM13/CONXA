@@ -14,6 +14,71 @@ import time
 import numpy as np
 from skimage.io import imsave
 
+def pad_to_min_size(image, min_size=(320, 320)):
+    """
+    Pad the image to ensure all axes are at least min_size dimensions,
+    with padding applied to the right and bottom only.
+
+    Args:
+        image (np.ndarray): Input image (H, W, C).
+        min_size (tuple): Minimum size as (height, width).
+
+    Returns:
+        padded_img (np.ndarray): Image padded to meet the minimum size.
+        padding (tuple): Padding applied as (bottom, right).
+    """
+    
+    h, w = image.shape[:2]
+    min_h, min_w = min_size
+
+    # Compute padding
+    bottom = max(0, min_h - h)
+    right = max(0, min_w - w)
+    
+
+
+    # Apply padding to right and bottom only
+    padded_img = cv2.copyMakeBorder(
+        image, 0, bottom, 0, right, cv2.BORDER_CONSTANT, value=255
+    )
+    
+
+
+    return padded_img, (bottom, right)
+
+
+
+
+
+
+def remove_padding(image, bottom, right):
+    """
+    Remove padding from the image, considering only right and bottom padding.
+
+    Args:
+        image (np.ndarray): Input image (H, W) or (H, W, C).
+        bottom (int): Padding applied to the bottom.
+        right (int): Padding applied to the right.
+
+    Returns:
+        cropped_img (np.ndarray): Image with padding removed.
+    """
+    
+    h, w = image.shape[:2]
+    
+
+
+    # Ensure valid padding values
+    bottom = max(0, min(bottom, h))
+    right = max(0, min(right, w))
+    
+
+    return image[:h-bottom, :w-right]
+
+
+
+
+
 def single_gpu_test(model, data_loader, show=False, out_dir=None):
     """Test with single GPU.
 
